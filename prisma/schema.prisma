@@ -1,0 +1,227 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  river                 String?
+  district              String
+  province              String
+  capacityMw            Float                   @map("capacity_mw")
+  projectType           String                  @default("run_of_river") @map("project_type")
+  status                String                  @default("pre_development")
+  surveyLicenseDate     DateTime?               @map("survey_license_date")
+  generationLicenseDate DateTime?               @map("generation_license_date")
+  totalProjectCost      Float?                  @map("total_project_cost")
+  description           String?
+  ppaSignedDate         DateTime?               @map("ppa_signed_date")
+  financialClosureDate  DateTime?               @map("financial_closure_date")
+  constructionStartDate DateTime?               @map("construction_start_date")
+  targetCodDate         DateTime?               @map("target_cod_date")
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
+
+  clearances            Clearance[]
+  landParcels           LandParcel[]
+  components            ConstructionComponent[]
+  milestones            ConstructionMilestone[]
+  contractors           Contractor[]
+  dailySiteReports      DailySiteReport[]
+}
+
+model Clearance {
+  id                Int                 @id @default(autoincrement())
+  projectId         Int                 @map("project_id")
+  name              String
+  type              String
+  status            String              @default("pending")
+  issuingAgency     String?             @map("issuing_agency")
+  applicationDate   DateTime?           @map("application_date")
+  approvalDate      DateTime?           @map("approval_date")
+  expiryDate        DateTime?           @map("expiry_date")
+  validityYears     Int?                @map("validity_years")
+  isCritical        Boolean             @default(false) @map("is_critical")
+  responsiblePerson String?             @map("responsible_person")
+  responsibleEmail  String?             @map("responsible_email")
+  expectedDate      DateTime?           @map("expected_date")
+  notes             String?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  documents         ClearanceDocument[]
+}
+
+model ClearanceDocument {
+  id          Int       @id @default(autoincrement())
+  clearanceId Int       @map("clearance_id")
+  fileName    String    @map("file_name")
+  filePath    String    @map("file_path")
+  fileSize    Int?      @map("file_size")
+  uploadedBy  String?   @map("uploaded_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  clearance   Clearance @relation(fields: [clearanceId], references: [id], onDelete: Cascade)
+}
+
+model LandParcel {
+  id                 Int             @id @default(autoincrement())
+  projectId          Int             @map("project_id")
+  plotNumber         String          @map("plot_number")
+  vdcMunicipality    String          @map("vdc_municipality")
+  wardNumber         String          @map("ward_number")
+  ownerName          String          @map("owner_name")
+  ownerContact       String?         @map("owner_contact")
+  ownerCitizenshipNo String?         @map("owner_citizenship_no")
+  areaRopani         Float?          @map("area_ropani")
+  areaSqm            Float?          @map("area_sqm")
+  landType           String          @default("agricultural") @map("land_type")
+  acquisitionStatus  String          @default("not_initiated") @map("acquisition_status")
+  agreedCompensation Float?          @map("agreed_compensation")
+  paidCompensation   Float?          @default(0.0) @map("paid_compensation")
+  agreementDate      DateTime?       @map("agreement_date")
+  registrationDate   DateTime?       @map("registration_date")
+  isDisputed         Boolean         @default(false) @map("is_disputed")
+  disputeReason      String?         @map("dispute_reason")
+  disputeStatus      String?         @map("dispute_status")
+  latitude           Float?
+  longitude          Float?
+  assignedTo         String?         @map("assigned_to")
+  notes              String?
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  project            Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  payments           ParcelPayment[]
+}
+
+model ParcelPayment {
+  id              Int        @id @default(autoincrement())
+  landParcelId    Int        @map("land_parcel_id")
+  amount          Float
+  paymentDate     DateTime   @map("payment_date")
+  paymentMethod   String     @map("payment_method")
+  referenceNumber String?    @map("reference_number")
+  paidBy          String?    @map("paid_by")
+  notes           String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  landParcel      LandParcel @relation(fields: [landParcelId], references: [id], onDelete: Cascade)
+}
+
+model ConstructionComponent {
+  id             Int       @id @default(autoincrement())
+  projectId      Int       @map("project_id")
+  name           String
+  code           String
+  category       String
+  plannedStart   DateTime  @map("planned_start")
+  plannedEnd     DateTime  @map("planned_end")
+  actualStart    DateTime? @map("actual_start")
+  actualEnd      DateTime? @map("actual_end")
+  plannedCost    Float     @map("planned_cost")
+  actualCost     Float     @default(0.0) @map("actual_cost")
+  weightPct      Float     @map("weight_pct")
+  actualProgress Float     @default(0.0) @map("actual_progress")
+  scheduleStatus String    @default("on_track") @map("schedule_status")
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ConstructionMilestone {
+  id            Int       @id @default(autoincrement())
+  projectId     Int       @map("project_id")
+  name          String
+  plannedDate   DateTime  @map("planned_date")
+  actualDate    DateTime? @map("actual_date")
+  isCritical    Boolean   @default(false) @map("is_critical")
+  isBankTrigger Boolean   @default(false) @map("is_bank_trigger")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Contractor {
+  id                    Int              @id @default(autoincrement())
+  projectId             Int              @map("project_id")
+  companyName           String           @map("company_name")
+  contactPerson         String?          @map("contact_person")
+  contactPhone          String?          @map("contact_phone")
+  contactEmail          String?          @map("contact_email")
+  contractNumber        String?          @map("contract_number")
+  contractType          String           @map("contract_type")
+  workScope             String           @map("work_scope")
+  contractValue         Float            @map("contract_value")
+  variationOrders       Float            @default(0.0) @map("variation_orders")
+  contractStart         DateTime         @map("contract_start")
+  contractEnd           DateTime         @map("contract_end")
+  revisedEnd            DateTime?        @map("revised_end")
+  retentionPct          Float            @default(5.0) @map("retention_pct")
+  mobilizationAdvance   Float            @default(0.0) @map("mobilization_advance")
+  mobilizationRecovered Float            @default(0.0) @map("mobilization_recovered")
+  performanceStatus     String           @default("on_track") @map("performance_status")
+  notes                 String?
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+
+  project               Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  bills                 ContractorBill[]
+}
+
+model ContractorBill {
+  id                Int        @id @default(autoincrement())
+  contractorId      Int        @map("contractor_id")
+  billNumber        String     @map("bill_number")
+  billDate          DateTime   @map("bill_date")
+  submissionDate    DateTime   @map("submission_date")
+  billAmount        Float      @map("bill_amount")
+  certifiedAmount   Float?     @map("certified_amount")
+  certifiedDate     DateTime?  @map("certified_date")
+  certifiedBy       String?    @map("certified_by")
+  retentionDeducted Float      @default(0.0) @map("retention_deducted")
+  advanceRecovered  Float      @default(0.0) @map("advance_recovered")
+  netPayable        Float?     @map("net_payable")
+  paidAmount        Float      @default(0.0) @map("paid_amount")
+  paidDate          DateTime?  @map("paid_date")
+  status            String     @default("submitted")
+  notes             String?
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  contractor        Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+}
+
+model DailySiteReport {
+  id         Int      @id @default(autoincrement())
+  projectId  Int      @map("project_id")
+  reportDate DateTime @map("report_date")
+  reportedBy String   @map("reported_by")
+  workDone   String   @map("work_done")
+  photos     Json?
+  isApproved Boolean  @default(true) @map("is_approved")
+  approvedBy String?  @map("approved_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
