@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"build": "prisma generate && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''"
 	},
@@ -21,7 +21,9 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.23.0",
+		"@neondatabase/serverless": "^1.1.0",
 		"@prisma/adapter-better-sqlite3": "^7.8.0",
+		"@prisma/adapter-neon": "^7.8.0",
 		"@prisma/adapter-pg": "^7.8.0",
 		"@prisma/client": "^7.8.0",
 		"bcryptjs": "^3.0.3",
@@ -29,6 +31,7 @@
 		"chart.js": "^4.5.1",
 		"leaflet": "^1.9.4",
 		"lucide-svelte": "^1.0.1",
-		"pg": "^8.22.0"
+		"pg": "^8.22.0",
+		"ws": "^8.21.0"
 	}
 }
