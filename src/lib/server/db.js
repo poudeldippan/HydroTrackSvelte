@@ -5,7 +5,7 @@ import pg from 'pg';
 
 const pool = new pg.Pool({ 
   connectionString: env.DATABASE_URL,
-  ssl: true
+  ssl: { rejectUnauthorized: false }
 });
 const adapter = new PrismaPg(pool);
 
